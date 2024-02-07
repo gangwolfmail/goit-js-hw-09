@@ -1,35 +1,58 @@
 const form = document.querySelector('.feedback-form');
-const input = form.elements.email;
-const textArea = form.elements.message;
-const localStorageKey = 'feedback-form-state';
+const email = form.elements.email;
+email.classList.add('feedback-input');
+const message = form.elements.message;
+message.classList.add('feedback-input');
 
-const getItemStorage = () => {
-  const parseStorage = JSON.parse(localStorage.getItem(localStorageKey));
-  if (parseStorage) {
-    input.value = parseStorage.email;
-    textArea.value = parseStorage.message;
-  }
-};
+form.addEventListener('submit', onSubmit);
+form.addEventListener('input', onInput);
 
-getItemStorage();
+const LS_KEY = 'feedback-form-state';
 
-form.addEventListener('input', () => {
-  const formValue = {
-    email: input.value.trim(),
-    message: textArea.value.trim(),
-  };
-
-  localStorage.setItem(localStorageKey, JSON.stringify(formValue));
-});
-
-form.addEventListener('submit', event => {
+function onSubmit(event) {
   event.preventDefault();
 
-  if (input.value.trim() !== '' && textArea.value.trim() !== '') {
-    console.log(JSON.parse(localStorage.getItem(localStorageKey)));
-    localStorage.removeItem(localStorageKey);
-    form.reset();
-  } else {
-    alert('Please, fill in all fields correctly!');
+  const email = form.elements.email.value.trim();
+  const message = form.elements.message.value.trim();
+  if (!email || !message) {
+    alert(`Don't leave empty fields!`);
+    return;
   }
-});
+  const data = {
+    email,
+    message,
+  };
+
+  console.log(data);
+  localStorage.removeItem(LS_KEY);
+  form.reset();
+}
+
+function onInput() {
+  const email = form.elements.email.value.trim();
+  const message = form.elements.message.value.trim();
+  const data = {
+    email,
+    message,
+  };
+  const zip = JSON.stringify(data);
+  localStorage.setItem(LS_KEY, zip);
+}
+
+function loadFromLS(key) {
+  const zip = localStorage.getItem(key);
+  try {
+    return JSON.parse(zip) || {};
+  } catch (error) {
+    console.error('Error parsing JSON from localStorage:', error);
+    return {};
+  }
+}
+
+function checkout() {
+  const userData = loadFromLS(LS_KEY) || {};
+  form.elements.email.value = (userData.email || '').trim();
+  form.elements.message.value = (userData.message || '').trim();
+}
+
+checkout();
